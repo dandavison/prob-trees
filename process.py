@@ -13,14 +13,15 @@ class Node:
         return hash(self.path)
 
 
-def read_tree(path: str):
+def make_tree(path: str) -> nx.DiGraph:
     data = list(csv.reader(open(path), delimiter=','))
     data = list(zip(*data))
 
+    root = Node('0', '0')
     graph = nx.DiGraph()
 
     for (states, probs) in chunked(data, 2):
-        parent =  Node('0', '0')
+        parent = root
         nx.set_node_attributes(graph, {parent: parent.label}, 'label')
         for (state, prob) in zip(states, probs):
             child = Node(f"{parent.path} -> {state}", state)
@@ -28,8 +29,26 @@ def read_tree(path: str):
             nx.set_node_attributes(graph, {child: child.label}, 'label')
             parent = child
 
-    print(nx.nx_pydot.to_pydot(graph))
+    return graph
+
+def validate(graph):
+    # if the sum of the probabilities is not 1, then the tree is invalid
+    for node in nx.dfs_postorder_nodes(graph):
+        if graph.out_degree(node) == 0:
+            continue
+        probs = [graph.edges[node, child]['prob'] for child in graph.successors(node)]
+        if sum(probs) != 1:
+            print(f"Invalid tree at node {node}: {probs}")
+            return False
+    return True
+
+
+def write_dot(graph, path):
+    with open(path, 'w') as fp:
+        fp.write(str(nx.nx_pydot.to_pydot(graph)))
 
 
 path, = sys.argv[1:]
-read_tree(path)
+tree = make_tree(path)
+write_dot(tree, path + '.dot')
+validate(tree)
