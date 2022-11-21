@@ -22,15 +22,18 @@ def make_tree(path: str) -> nx.DiGraph:
 
     for (states, probs) in chunked(data, 2):
         parent = root
+        path_prob = 1.0
         nx.set_node_attributes(graph, {parent: parent.label}, 'label')
         for (state, prob) in zip(states, probs):
             prob = float(prob)
+            path_prob *= prob
             child = Node(f"{parent.path} -> {state}", state)
             graph.add_edge(parent, child, prob=prob, name=state)
             nx.set_edge_attributes(graph, {(parent, child): prob}, 'label')
             nx.set_edge_attributes(graph, {(parent, child): prob * 10}, 'penwidth')
             nx.set_node_attributes(graph, {child: child.label}, 'label')
             parent = child
+        nx.set_node_attributes(graph, {parent: parent.label + f"\n\n{(100 * path_prob):.1f}%"}, 'label')
 
     return graph
 
