@@ -32,8 +32,11 @@ def make_tree(path: str) -> nx.DiGraph:
             nx.set_edge_attributes(graph, {(parent, child): prob}, 'label')
             nx.set_edge_attributes(graph, {(parent, child): prob * 10}, 'penwidth')
             nx.set_node_attributes(graph, {child: child.label}, 'label')
+            nx.set_node_attributes(graph, {child: 'red' if 'Not' in child.label else 'blue'}, 'color')
+            nx.set_node_attributes(graph, {child: 0.2}, 'penwidth')
             parent = child
         nx.set_node_attributes(graph, {parent: parent.label + f"\n\n{(100 * path_prob):.1f}%"}, 'label')
+        nx.set_node_attributes(graph, {parent: path_prob * 25}, 'penwidth')
 
     return graph
 
