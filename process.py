@@ -8,12 +8,12 @@ from more_itertools import chunked
 class Node:
     path: str
     label: str
-    
+
     def __hash__(self):
-        return self.path
+        return hash(self.path)
     
     def __str__(self):
-        return self.label
+        return self.path
 
 
 def read_tree(path: str):
@@ -23,14 +23,13 @@ def read_tree(path: str):
     graph = nx.DiGraph()
 
     for (states, probs) in chunked(data, 2):
-        path = '0'
+        parent =  Node('0', '0')
         for (state, prob) in zip(states, probs):
-            prob = float(prob)
-            new_path = f"{path} -> {state}"
-            graph.add_edge(path, new_path, prob=prob, name=state)
-            path = new_path
+            child = Node(f"{parent.path} -> {state}", state)
+            graph.add_edge(parent, child, prob=float(prob), name=state)
+            parent = child
 
-    print(graph.edges)
+    print(nx.nx_pydot.to_pydot(graph))
 
 
 path, = sys.argv[1:]
